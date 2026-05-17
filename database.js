@@ -67,15 +67,3 @@ async function dbClear() {
     request.onerror = () => reject(request.error);
   });
 }
-
-async function dbDelete() {
-  if (!('indexedDB' in window)) return;
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.deleteDatabase(DB_CONFIG.name);
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-    request.onblocked = () => {
-      console.warn('[db] deleteDatabase blocked');
-    };
-  });
-}
