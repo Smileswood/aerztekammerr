@@ -46,7 +46,6 @@ const closeTopNav = document.getElementById('closeTopNav');
 let selectedStationFilter = '';
 let selectedRankFilter = '';
 let selectedStatusFilter = '';
-let searchTerm = '';
 const stationSummary = document.getElementById('stationSummary');
 const employeeSelect = document.getElementById('employeeSelect');
 const employeeList = document.getElementById('employeeList');
@@ -93,7 +92,6 @@ const priceBlocks = document.getElementById('priceBlocks');
 const reportUpload = document.getElementById('reportUpload');
 const reportList = document.getElementById('reportList');
 const clearStorage = document.getElementById('clearStorage');
-const headerSearch = document.getElementById('headerSearch');
 
 let employees = [];
 let currentUser = null;
@@ -130,12 +128,7 @@ async function writeStorage(key, value) {
 async function clearAllStorage() {
   if (window.indexedDB) {
     try {
-      // attempt to delete the whole database; if not possible, clear the store
-      if (typeof dbDelete === 'function') {
-        await dbDelete();
-      } else {
-        await dbClear();
-      }
+      await dbClear();
     } catch (error) {
       console.warn('[db] clearAllStorage failed', error);
     }
@@ -264,13 +257,6 @@ function generateId() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-function getInitials(name) {
-  if (!name) return '';
-  const parts = name.trim().split(/\s+/);
-  const initials = parts.map(p => p[0].toUpperCase()).slice(0,2).join('');
-  return initials;
-}
-
 function saveEmployees() {
   return writeStorage(STORAGE_KEYS.employees, employees);
 }
@@ -384,13 +370,11 @@ function filterEmployees() {
   const station = selectedStationFilter;
   const rank = selectedRankFilter;
   const status = selectedStatusFilter;
-  const search = (searchTerm || '').toLowerCase();
   return employees.filter((employee) => {
     return (
       (!station || employee.station === station) &&
       (!rank || employee.rank === rank) &&
-      (!status || employee.status === status) &&
-      (!search || [employee.name, employee.username, employee.rank, employee.station, (employee.training || []).join(' ')].join(' ').toLowerCase().includes(search))
+      (!status || employee.status === status)
     );
   });
 }
@@ -441,24 +425,20 @@ function renderEmployeeList() {
       }
       const trainingText = employee.training.length ? employee.training.join(', ') : 'Keine';
       const statusClass = `status-${employee.status.replace(/\s+/g, '').toLowerCase()}`;
-
-      const rankBadge = `<span class="rank-badge">${employee.rank}</span>`;
-      const stationText = `<span class="station-text">${employee.station}</span>`;
-      const trainingClassMap = { 'Aus.': 'training-aus', 'Vet.': 'training-vet', 'Pha.': 'training-pha' };
-      const trainingBadges = (employee.training && employee.training.length)
-        ? employee.training.map(t => `<span class="training-badge ${trainingClassMap[t] || ''}">${t}</span>`).join(' ')
-        : '<span class="training-none">Keine</span>';
+      const detailAllowed = canViewEmployeeDetails(employee);
+      const rankText = employee.rank; // always show rank in the employee list
+      const trainingDisplay = trainingText; // always show trainings in the employee list
 
       card.innerHTML = `
         <div class="employee-card-header">
           <div>
             <h3>${employee.name}</h3>
-            <p class="meta">${rankBadge} <span class="dot">•</span> ${stationText}</p>
+            <p>${rankText} • ${employee.station}</p>
           </div>
           <span class="status-pill ${statusClass}">${employee.status}</span>
         </div>
         <div class="employee-card-info">
-          <p class="trainings"><strong>Weiterbildung:</strong> ${trainingBadges}</p>
+          <p><strong>Weiterbildung:</strong> ${trainingDisplay}</p>
         </div>
       `;
 
@@ -1365,14 +1345,6 @@ employeeSelect.addEventListener('change', () => {
   renderSelectedEmployeeInfo();
 });
 
-if (headerSearch) {
-  headerSearch.addEventListener('input', (e) => {
-    searchTerm = e.target.value.trim();
-    renderStationSummary();
-    renderEmployeeList();
-  });
-}
-
 messageRecipientType.addEventListener('change', updateMessageTargetGroups);
 messageTrainingFilter.addEventListener('change', updateMessageRecipientPreview);
 messageEmployeeFilter.addEventListener('change', updateMessageRecipientPreview);
@@ -1485,8 +1457,12 @@ updateSelectedStatus.addEventListener('click', () => {
 clearStorage.addEventListener('click', async () => {
   if (!confirm('Alle lokalen Daten wirklich zurücksetzen?')) return;
   await clearAllStorage();
-  // fully reload to ensure a clean state
-  location.reload();
+  await initializeData();
+  updateLoginState();
+  renderHandbookBlocks();
+  renderPriceBlocks();
+  renderDepartments();
+  renderReports();
 });
 
 async function startApp() {
