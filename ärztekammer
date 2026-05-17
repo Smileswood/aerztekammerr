@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#041023" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <title>Ärztekammer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="loginPage" class="page active">
+    <div class="auth-card">
+      <h1>Login</h1>
+      <p>Bitte melde dich an, um das Dashboard zu nutzen.</p>
+      <form id="loginForm">
+        <label for="loginUsername">Benutzername</label>
+        <input id="loginUsername" type="text" autocomplete="username" required />
+        <label for="loginPassword">Passwort</label>
+        <input id="loginPassword" type="password" autocomplete="current-password" required />
+        <button type="submit">Anmelden</button>
+      </form>
+      <p id="loginError" class="error"></p>
+    </div>
+  </div>
+
+  <div id="appPage" class="hidden">
+    <header class="app-header">
+      <div>
+        <h1>Ärztekammer</h1>
+        <p id="headerSubtitle">Verwalte Mitarbeiter, Lehrbuch, Berichte und mehr.</p>
+        <div class="header-search">
+          <input id="headerSearch" type="search" placeholder="Suche Mitarbeiter, Rang oder Station…" aria-label="Suche" />
+        </div>
+      </div>
+      <div class="user-panel">
+        <button id="notificationBell" type="button" class="notification-bell" aria-label="Mitteilungen">
+          <span class="notification-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 22c1.104 0 2-.896 2-2H10c0 1.104.896 2 2 2Z" fill="currentColor" opacity="0.9"/>
+              <path d="M18.5 14v-5c0-3.036-2.152-5.548-5-5.931V2.5a1.5 1.5 0 0 0-3 0v.569c-2.848.383-5 2.895-5 5.931v5l-1.5 1.5v1h16v-1l-1.5-1.5Z" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span id="notificationCount" class="notification-badge hidden">0</span>
+        </button>
+        <button id="currentUserName" type="button" class="account-name" aria-label="Mein Konto öffnen"></button>
+        <button id="logoutButton">Abmelden</button>
+        <button id="menuToggle" class="menu-button" type="button" aria-label="Seitenmenü öffnen">☰</button>
+      </div>
+    </header>
+
+    <div id="notificationPanel" class="notification-panel hidden">
+      <div class="notification-panel-header">
+        <span>Mitteilungen</span>
+        <button id="closeNotificationPanel" class="notification-panel-close" type="button" aria-label="Mitteilungen schließen">✕</button>
+      </div>
+      <div id="notificationList" class="notification-list"></div>
+    </div>
+
+    <div id="topNav" class="top-nav hidden">
+      <div class="top-nav-inner">
+        <div class="top-nav-header">
+          <span>Seiten</span>
+          <button id="closeTopNav" class="top-nav-close" type="button" aria-label="Navigation schließen">✕</button>
+        </div>
+        <div class="top-nav-list">
+          <button data-page="dashboardPage" class="active">Dashboard</button>
+          <button data-page="employeesPage">Mitarbeiterliste</button>
+          <button data-page="handbookPage">Lehrbuch</button>
+          <button data-page="priceListPage">Preisliste</button>
+          <button data-page="departmentsPage">Abteilungen</button>
+          <button data-page="reportsPage">Berichte</button>
+          <button data-page="managementPage">Verwaltung</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+
+      <main class="content">
+        <section id="dashboardPage" class="page active">
+          <h2>Dashboard</h2>
+          <div class="card-grid">
+            <div class="card">
+              <h3>Übersicht</h3>
+              <p id="employeeCount">Mitarbeiter: 0</p>
+              <p id="statusCounts">Status: -</p>
+            </div>
+            <div class="card">
+              <h3>Stationierungen</h3>
+              <ul id="stationCounts"></ul>
+            </div>
+            <div class="card">
+              <h3>Mein Konto</h3>
+              <p id="dashboardUserInfo"></p>
+              <label for="statusSelect">Status setzen</label>
+              <select id="statusSelect"></select>
+            </div>
+          </div>
+        </section>
+
+        <section id="employeesPage" class="page hidden">
+          <h2>Mitarbeiterliste</h2>
+          <div class="station-summary" id="stationSummary"></div>
+
+          <div class="employee-actions">
+            <div>
+              <label for="employeeSelect">Mitarbeiter wählen</label>
+              <select id="employeeSelect"></select>
+            </div>
+            <div class="action-buttons">
+              <button type="button" id="showHireForm">Einstellen</button>
+              <button type="button" id="showTransferForm">Versetzen</button>
+              <button type="button" id="showMessageForm">Mitteilung</button>
+              <button type="button" id="showPromoteForm">Befördern / Degradieren</button>
+              <button type="button" id="showFireForm">Entlassen</button>
+            </div>
+          </div>
+
+          <div class="card employee-detail">
+            <div class="employee-detail-head">
+              <div>
+                <h3>Ausgewählter Mitarbeiter</h3>
+                <p id="selectedEmployeeInfo">Wähle einen Mitarbeiter, um Informationen zu sehen.</p>
+              </div>
+              <span id="selectedEmployeeBadge" class="status-pill status-imdienst">Status</span>
+            </div>
+            <div class="employee-detail-grid">
+              <div class="employee-detail-item">
+                <span>Station</span>
+                <strong id="selectedEmployeeStation">-</strong>
+              </div>
+              <div class="employee-detail-item">
+                <span>Rang</span>
+                <strong id="selectedEmployeeRank">-</strong>
+              </div>
+              <div class="employee-detail-item">
+                <span>Weiterbildung</span>
+                <strong id="selectedEmployeeTraining">-</strong>
+              </div>
+            </div>
+            <div class="employee-detail-actions">
+              <div>
+                <label for="selectedEmployeeStatus">Status</label>
+                <select id="selectedEmployeeStatus"></select>
+              </div>
+              <button type="button" id="updateSelectedStatus">Aktualisieren</button>
+            </div>
+          </div>
+
+          <div id="transferForm" class="action-form hidden">
+            <h3>Versetzung</h3>
+            <label for="transferStation">Neue Station</label>
+            <select id="transferStation"></select>
+            <button id="transferEmployee" type="button">Versetzen</button>
+          </div>
+
+          <div id="messageForm" class="action-form hidden">
+            <h3>Mitteilung senden</h3>
+            <label for="messageRecipientType">Empfänger</label>
+            <select id="messageRecipientType">
+              <option value="all">Alle Mitarbeiter</option>
+              <option value="training">Nur bestimmte Weiterbildung</option>
+              <option value="single">Einzelner Mitarbeiter</option>
+            </select>
+
+            <div id="messageTrainingGroup" class="message-target-group hidden">
+              <label for="messageTrainingFilter">Weiterbildung wählen</label>
+              <select id="messageTrainingFilter"></select>
+            </div>
+            <div id="messageEmployeeGroup" class="message-target-group hidden">
+              <label for="messageEmployeeFilter">Mitarbeiter wählen</label>
+              <select id="messageEmployeeFilter"></select>
+            </div>
+            <p id="messageRecipientCount" class="hint">Empfänger: Alle Mitarbeiter</p>
+
+            <label for="messageText">Nachricht</label>
+            <textarea id="messageText" rows="4"></textarea>
+            <button id="sendMessage" type="button">Senden</button>
+          </div>
+
+          <div id="hireForm" class="action-form hidden">
+            <h3>Mitarbeiter einstellen</h3>
+            <form>
+              <label for="hireName">Name</label>
+              <input id="hireName" type="text" required />
+              <label for="hireUsername">Benutzername</label>
+              <input id="hireUsername" type="text" required />
+              <label for="hirePassword">Passwort</label>
+              <input id="hirePassword" type="password" required />
+              <label for="hireStation">Station</label>
+              <select id="hireStation"></select>
+              <label for="hireRank">Rang</label>
+              <select id="hireRank"></select>
+              <fieldset>
+                <legend>Weiterbildung</legend>
+                <label><input type="checkbox" value="Aus." class="trainingCheckbox" /> Ausbilder</label>
+                <label><input type="checkbox" value="Vet." class="trainingCheckbox" /> Veterinär</label>
+                <label><input type="checkbox" value="Pha." class="trainingCheckbox" /> Pharmazie</label>
+              </fieldset>
+              <button id="hireEmployee" type="button">Einstellen</button>
+            </form>
+          </div>
+
+          <div id="promoteForm" class="action-form hidden">
+            <h3>Beförderung / Degradierung</h3>
+            <label for="promoteRank">Neuer Rang</label>
+            <select id="promoteRank"></select>
+            <fieldset>
+              <legend>Weiterbildungen</legend>
+              <label><input type="checkbox" value="Aus." class="trainingCheckbox promote" /> Ausbilder</label>
+              <label><input type="checkbox" value="Vet." class="trainingCheckbox promote" /> Veterinär</label>
+              <label><input type="checkbox" value="Pha." class="trainingCheckbox promote" /> Pharmazie</label>
+            </fieldset>
+            <button id="promoteEmployee" type="button">Speichern</button>
+          </div>
+
+          <div id="fireForm" class="action-form hidden">
+            <h3>Entlassen</h3>
+            <p>Der Mitarbeiter und seine Anmeldedaten werden gelöscht.</p>
+            <button id="fireEmployee" type="button" class="danger">Entlassen</button>
+          </div>
+
+          <div class="employee-list" id="employeeList"></div>
+        </section>
+
+        <section id="handbookPage" class="page hidden">
+          <h2>Lehrbuch</h2>
+          <div class="content-toolbar">
+            <button data-add="text" data-target="handbook">Textfeld hinzufügen</button>
+            <button data-add="table" data-target="handbook">Tabelle hinzufügen</button>
+          </div>
+          <div id="handbookBlocks" class="blocks"></div>
+        </section>
+
+        <section id="priceListPage" class="page hidden">
+          <h2>Preisliste</h2>
+          <div class="content-toolbar">
+            <button data-add="text" data-target="price">Textfeld hinzufügen</button>
+            <button data-add="table" data-target="price">Tabelle hinzufügen</button>
+          </div>
+          <div id="priceBlocks" class="blocks"></div>
+        </section>
+
+        <section id="departmentsPage" class="page hidden">
+          <h2>Abteilungen</h2>
+          <div class="department-grid">
+            <div class="card">
+              <h3>Ausbildungsplan</h3>
+              <textarea id="departmentAusbildung"></textarea>
+              <button class="saveDepartment" data-section="Ausbildungsplan">Speichern</button>
+            </div>
+            <div class="card">
+              <h3>Veterinär</h3>
+              <textarea id="departmentVeterinär"></textarea>
+              <button class="saveDepartment" data-section="Veterinär">Speichern</button>
+            </div>
+            <div class="card">
+              <h3>Pharmazie</h3>
+              <textarea id="departmentPharmazie"></textarea>
+              <button class="saveDepartment" data-section="Pharmazie">Speichern</button>
+            </div>
+          </div>
+        </section>
+
+        <section id="reportsPage" class="page hidden">
+          <h2>Berichte</h2>
+          <div class="card">
+            <label for="reportUpload">Datei hochladen</label>
+            <input id="reportUpload" type="file" />
+          </div>
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr><th>Dateiname</th><th>Hochgeladen</th><th>Aktionen</th></tr>
+              </thead>
+              <tbody id="reportList"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section id="managementPage" class="page hidden">
+          <h2>Verwaltung</h2>
+          <div class="card-grid">
+            <div class="card">
+              <h3>Systemstatus</h3>
+              <p id="managementSummary"></p>
+            </div>
+            <div class="card">
+              <h3>Aktionen</h3>
+              <button id="clearStorage" class="danger">Alle Daten zurücksetzen</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="database.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
